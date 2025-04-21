@@ -29,7 +29,7 @@ func main() {
 	app := NewApp(bibfile, libdir)
 
 	if err := wails.Run(&options.App{
-		Title:  "guitest",
+		Title:  "llyfr",
 		Width:  1280,
 		Height: 960,
 		AssetServer: &assetserver.Options{
