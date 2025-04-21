@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -15,15 +16,17 @@ var assets embed.FS
 func main() {
 	args := os.Args[1:]
 
-	jsonfile := "/home/hayk/Documents/Literature/refs.bib"
-	libdir := "/home/hayk/Documents/Literature/"
+	bibfile := "refs.bib"
+	libdir := "./"
 	if len(args) > 0 {
-		jsonfile = args[0]
+		bibfile = args[0]
 	}
 	if len(args) > 1 {
 		libdir = args[1]
+	} else if len(args) > 0 {
+		libdir = filepath.Dir(bibfile)
 	}
-	app := NewApp(jsonfile, libdir)
+	app := NewApp(bibfile, libdir)
 
 	if err := wails.Run(&options.App{
 		Title:  "guitest",

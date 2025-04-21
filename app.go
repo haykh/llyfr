@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	sysruntime "runtime"
 	"strings"
@@ -14,25 +15,21 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// App struct
 type App struct {
 	ctx         context.Context
-	jsonfile    string
+	bibfile     string
 	libdir      string
 	openingfile bool
 }
 
-// NewApp creates a new App application struct
-func NewApp(jsonfile, libdir string) *App {
+func NewApp(bibfile, libdir string) *App {
 	return &App{
-		jsonfile:    jsonfile,
+		bibfile:     bibfile,
 		libdir:      libdir,
 		openingfile: false,
 	}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	runtime.LogSetLogLevel(a.ctx, logger.WARNING)
@@ -48,15 +45,15 @@ func (a *App) OpenPDF(filename string) error {
 	}
 	a.openingfile = true
 	var cmd *exec.Cmd
-	filepath := a.libdir + filename
+	fpath := filepath.Join(a.libdir, filename)
 
 	switch sysruntime.GOOS {
 	case "darwin":
-		cmd = exec.Command("open", filepath)
+		cmd = exec.Command("open", fpath)
 	case "windows":
-		cmd = exec.Command("cmd", "/c", "start", "", filepath)
+		cmd = exec.Command("cmd", "/c", "start", "", fpath)
 	case "linux":
-		cmd = exec.Command("xdg-open", filepath)
+		cmd = exec.Command("xdg-open", fpath)
 	default:
 		return errors.New("unsupported platform")
 	}
@@ -70,13 +67,15 @@ func (a *App) OpenPDF(filename string) error {
 }
 
 func (a *App) GetLiterature() []map[string]string {
-	if file, err := os.Open(a.jsonfile); err != nil {
+	if file, err := os.Open(a.bibfile); err != nil {
 		runtime.LogError(a.ctx, err.Error())
+		a.Exit()
 		return nil
 	} else {
 		defer file.Close()
 		linebuffer := bufio.NewScanner(file)
 		if err := linebuffer.Err(); err != nil {
+			a.Exit()
 			runtime.LogError(a.ctx, err.Error())
 		}
 
@@ -86,6 +85,7 @@ func (a *App) GetLiterature() []map[string]string {
 			line := linebuffer.Text()
 			if newentry, err := regexp.MatchString("^@", line); err != nil {
 				runtime.LogFatal(a.ctx, err.Error())
+				a.Exit()
 			} else if newentry {
 				pubtype := regexp.MustCompile("^@([a-zA-Z0-9_]+)\\{").FindStringSubmatch(line)
 				if strings.ToLower(pubtype[1]) != "comment" {
@@ -99,11 +99,13 @@ func (a *App) GetLiterature() []map[string]string {
 					if len(matches) == 3 {
 						if len(elements) == 0 {
 							runtime.LogFatal(a.ctx, "Elements not initialized")
+							a.Exit()
 							return nil
 						}
 						elements[len(elements)-1][matches[1]] = matches[2]
 					} else {
 						runtime.LogFatalf(a.ctx, "# matches: %d", len(matches))
+						a.Exit()
 					}
 				}
 			}
@@ -129,10 +131,8 @@ func (a *App) GetLiterature() []map[string]string {
 						authorlist = authorlist[:3]
 						authorlist = append(authorlist, "et al.")
 					}
-					// separate with commas
 					value = ""
 					for j := 0; j < len(authorlist); j++ {
-						// remove after ,
 						if strings.Contains(authorlist[j], ",") {
 							authorlist[j] = strings.Split(authorlist[j], ",")[0]
 						}
@@ -175,7 +175,6 @@ func (a *App) GetLiterature() []map[string]string {
 				}
 			}
 		}
-		// remove empty elements
 		for i := len(elements) - 1; i >= 0; i-- {
 			if len(elements[i]) == 0 {
 				elements = append(elements[:i], elements[i+1:]...)
