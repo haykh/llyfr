@@ -53,28 +53,24 @@ const App = () => {
 
   const [state, dispatch] = useReducer(
     (state: { active: number }, action: { type: string; payload?: any }) => {
-      switch (action.type) {
-        case "arrowUp":
-          return {
-            active:
-              state.active <= 0 ? filteredList.length - 1 : state.active - 1,
-          };
-        case "arrowDown":
-          return {
-            active:
-              state.active >= filteredList.length - 1 ? 0 : state.active + 1,
-          };
-        case "escape":
-          Exit();
-        case "select":
-          OpenPDF(filteredList[state.active].item.file);
-          return state;
-        case "filter":
-          setPrompt(action.payload.target.value);
-          return state;
-        default:
-          throw new Error();
+      if (action.type === "arrowUp") {
+        return {
+          active:
+            state.active <= 0 ? filteredList.length - 1 : state.active - 1,
+        };
+      } else if (action.type === "arrowDown") {
+        return {
+          active:
+            state.active >= filteredList.length - 1 ? 0 : state.active + 1,
+        };
+      } else if (action.type === "escape") {
+        Exit();
+      } else if (action.type === "select") {
+        OpenPDF(filteredList[state.active].item.file);
+      } else if (action.type === "filter") {
+        setPrompt(action.payload.target.value);
       }
+      return state;
     },
     {
       active: 0,
