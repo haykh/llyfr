@@ -21,7 +21,7 @@ pkgs.mkShell ({
     webkitgtk_4_0
     # webkitgtk_6_0
 
-    nodejs_23
+    nodePackages.nodejs
     vscode-langservers-extracted
     emmet-ls
     typescript-language-server
