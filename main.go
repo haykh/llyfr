@@ -38,7 +38,7 @@ func main() {
 		Frameless:        true,
 		BackgroundColour: &options.RGBA{R: 23, G: 23, B: 23, A: 1},
 		OnStartup:        app.startup,
-		Bind: []interface{}{
+		Bind: []any{
 			app,
 		},
 	}); err != nil {

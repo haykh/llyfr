@@ -13,6 +13,8 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type App struct {
@@ -87,14 +89,14 @@ func (a *App) GetLiterature() []map[string]string {
 				runtime.LogFatal(a.ctx, err.Error())
 				a.Exit()
 			} else if newentry {
-				pubtype := regexp.MustCompile("^@([a-zA-Z0-9_]+)\\{").FindStringSubmatch(line)
+				pubtype := regexp.MustCompile(`^@([a-zA-Z0-9_]+)\{`).FindStringSubmatch(line)
 				if strings.ToLower(pubtype[1]) != "comment" {
 					elements = append(elements, map[string]string{
 						"type": pubtype[1],
 					})
 				}
 			} else {
-				re := regexp.MustCompile("^\\s*([a-zA-Z0-9_]+)\\s*=\\s*{(.+)},$")
+				re := regexp.MustCompile(`^\s*([a-zA-Z0-9_]+)\s*=\s*{(.+)},$`)
 				if matches := re.FindStringSubmatch(line); len(matches) > 0 {
 					if len(matches) == 3 {
 						if len(elements) == 0 {
@@ -116,12 +118,13 @@ func (a *App) GetLiterature() []map[string]string {
 				value = regexp.MustCompile(`\{\\['`+"`"+`"^]\{?\\?([a-zA-Z])\}?\}`).ReplaceAllString(value, "$1")
 				value = regexp.MustCompile(`\\c\{?c\}?`).ReplaceAllString(value, "c")
 				value = regexp.MustCompile(`\\l`).ReplaceAllString(value, "l")
-				value = regexp.MustCompile("{|}|~").ReplaceAllString(value, "")
-				value = regexp.MustCompile("\\n").ReplaceAllString(value, " ")
-				value = regexp.MustCompile("\\s+").ReplaceAllString(value, " ")
+				value = regexp.MustCompile(`{|}|~`).ReplaceAllString(value, "")
+				value = regexp.MustCompile(`\n`).ReplaceAllString(value, " ")
+				value = regexp.MustCompile(`\s+`).ReplaceAllString(value, " ")
 				value = regexp.MustCompile(`\$\\gamma\$`).ReplaceAllString(value, "gamma")
 
-				if k == "author" {
+				switch k {
+				case "author":
 					authorlist := regexp.MustCompile(" and ").Split(value, -1)
 					if strings.Contains(strings.ToLower(authorlist[0]), "collaboration") {
 						authorlist = authorlist[:1]
@@ -141,37 +144,40 @@ func (a *App) GetLiterature() []map[string]string {
 							value += ", "
 						}
 					}
-				} else if k == "journal" {
-					if value == "Astrophysical Journal" || value == "The Astrophysical Journal" {
+				case "journal":
+					switch value {
+					case "Astrophysical Journal", "The Astrophysical Journal":
 						value = "ApJ"
-					} else if value == "Astrophysical Journal Letters" {
+					case "Astrophysical Journal Letters":
 						value = "ApJL"
-					} else if value == "Astrophysical Journal: Supplement" || value == "Astrophysical Journal Supplement" {
+					case "Astrophysical Journal: Supplement", "Astrophysical Journal Supplement":
 						value = "ApJS"
-					} else if value == "Astronomy and Astrophysics" || value == "Astronomy & Astrophysics" || value == "Astronomy \\& Astrophysics" {
+					case "Astronomy and Astrophysics", "Astronomy & Astrophysics", "Astronomy \\& Astrophysics":
 						value = "A&A"
-					} else if value == "Monthly Notices of the Royal Astronomical Society" {
+					case "Monthly Notices of the Royal Astronomical Society":
 						value = "MNRAS"
-					} else if value == "Physical Review D" {
+					case "Physical Review D":
 						value = "PRD"
-					} else if value == "Physical Review Letters" {
+					case "Physical Review Letters":
 						value = "PRL"
-					} else if value == "Journal of Plasma Physics" {
+					case "Journal of Plasma Physics":
 						value = "JPP"
 					}
-				} else if k == "file" {
+				case "file":
 					value = regexp.MustCompile(":(.+)?:").FindStringSubmatch(value)[1]
 				}
 
 				elements[i][k] = value
 			}
 		}
+		caser := cases.Title(language.English)
+
 		for i := 0; i < len(elements); i++ {
 			if strings.ToLower(elements[i]["type"]) != "article" {
 				if strings.Contains(strings.ToLower(elements[i]["type"]), "thesis") {
 					elements[i]["journal"] = "Thesis"
 				} else {
-					elements[i]["journal"] = strings.Title(strings.ToLower(elements[i]["type"]))
+					elements[i]["journal"] = caser.String(strings.ToLower(elements[i]["type"]))
 				}
 			}
 		}
