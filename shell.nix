@@ -18,8 +18,7 @@ pkgs.mkShell ({
     pkg-config
     makeWrapper
     gtk3
-    webkitgtk_4_0
-    # webkitgtk_6_0
+    webkitgtk_4_1
 
     nodePackages.nodejs
     vscode-langservers-extracted
