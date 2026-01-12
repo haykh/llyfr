@@ -1,77 +1,92 @@
 {
-  description = "Wails desktop app";
+  description = "Llyfr flake";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    { self, nixpkgs }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-    in
     {
-      packages.${system}.default = pkgs.buildGoModule rec {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+
         pname = "llyfr";
         version = "1.0.0";
 
-        src = ./.;
+        frontend = pkgs.buildNpmPackage {
+          pname = "${pname}-frontend";
+          inherit version;
 
-        vendorHash = null; # or provide if using vendored modules
-        buildFlags = [ "-mod=vendor" ];
+          src = ./frontend;
 
-        nativeBuildInputs = with pkgs; [
-          pkg-config
-          nodePackages.nodejs
-          wails
-        ];
+          npmDepsHash = "sha256-7SoU4WzwScTF8cUIZw3u0V8VSCJre2LkRpmE3q9L+WQ=";
 
-        buildInputs = with pkgs; [
-          makeWrapper
-          webkitgtk_4_1
-          gtk3
-        ];
+          npmBuildScript = "build";
 
-        buildPhase = ''
-          wails build -clean -o ${pname}
-        '';
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp -r dist $out/dist
+            runHook postInstall
+          '';
+        };
+      in
+      {
+        packages.default = pkgs.buildGoModule {
+          inherit pname version;
 
-        installPhase = ''
-          mkdir -p $out/bin
-          cp build/bin/${pname} $out/bin/
-        '';
-      };
+          src = ./.;
 
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          go
-          gopls
-          gotools
-          hugo
-          wails
-          prettier-plugin-go-template
+          vendorHash = "sha256-r6WnXz8Low1xsElJTZgTuS/57ezEGhCw81ba8G00P7o=";
 
-          pkg-config
-          makeWrapper
-          gtk3
-          webkitgtk_4_1
+          tags = [
+            "desktop"
+            "production"
+            "webkit2_41"
+          ];
+          ldflags = [
+            "-w"
+            "-s"
+          ];
 
-          nodePackages.nodejs
-          vscode-langservers-extracted
-          emmet-ls
-          typescript-language-server
-          taplo
-          yaml-language-server
-          markdown-oxide
-          prettierd
-          eslint_d
-          mdformat
-          svelte-language-server
-        ];
-        shellHook = ''
-          echo "wails dev shell"
-        '';
-      };
-    };
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            wrapGAppsHook3
+          ];
+
+          buildInputs = with pkgs; [
+            gtk3
+            webkitgtk_4_1
+          ];
+
+          preBuild = ''
+            rm -rf frontend/dist
+            mkdir -p frontend
+            cp -r ${frontend}/dist frontend/dist
+          '';
+
+        };
+
+        devShells.default = pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [
+            go
+            nodejs
+            wails
+            pkg-config
+          ];
+
+          buildInputs = with pkgs; [
+            gtk3
+            webkitgtk_4_1
+          ];
+        };
+      }
+    );
 }
