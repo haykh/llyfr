@@ -18,7 +18,7 @@
         pkgs = import nixpkgs { inherit system; };
 
         pname = "llyfr";
-        version = "1.0.0";
+        version = "1.1.0";
 
         frontend = pkgs.buildNpmPackage {
           pname = "${pname}-frontend";

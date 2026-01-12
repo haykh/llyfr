@@ -3,12 +3,10 @@ package main
 import (
 	"bufio"
 	"context"
-	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	sysruntime "runtime"
 	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -19,13 +17,15 @@ import (
 
 type App struct {
 	ctx         context.Context
+	pdfviewer   string
 	bibfile     string
 	libdir      string
 	openingfile bool
 }
 
-func NewApp(bibfile, libdir string) *App {
+func NewApp(pdfviewer, bibfile, libdir string) *App {
 	return &App{
+		pdfviewer:   pdfviewer,
 		bibfile:     bibfile,
 		libdir:      libdir,
 		openingfile: false,
@@ -46,21 +46,9 @@ func (a *App) OpenPDF(filename string) error {
 		return nil
 	}
 	a.openingfile = true
-	var cmd *exec.Cmd
 	fpath := filepath.Join(a.libdir, filename)
 
-	switch sysruntime.GOOS {
-	case "darwin":
-		cmd = exec.Command("open", fpath)
-	case "windows":
-		cmd = exec.Command("cmd", "/c", "start", "", fpath)
-	case "linux":
-		cmd = exec.Command("xdg-open", fpath)
-	default:
-		return errors.New("unsupported platform")
-	}
-
-	if err := cmd.Start(); err != nil {
+	if err := exec.Command(a.pdfviewer, fpath).Start(); err != nil {
 		return err
 	} else {
 		a.Exit()
