@@ -50,7 +50,7 @@ export default function LocalList({
   return (
     <List
       isLoading={isLoading}
-      searchBarPlaceholder="Search papers by author, year, journal..."
+      searchBarPlaceholder="Search papers by author, year, journal…"
       actions={
         <ActionPanel>
           <Action.Push
@@ -62,6 +62,27 @@ export default function LocalList({
         </ActionPanel>
       }
     >
+      {!isLoading && (
+        <List.EmptyView
+          icon={Icon.Book}
+          title={entries.length === 0 ? "No Papers in Library" : "No Matching Papers"}
+          description={
+            entries.length === 0
+              ? "Add a paper with Add New Entry, or import one with Search ADS."
+              : "Try searching by a different author, year, or journal."
+          }
+          actions={
+            <ActionPanel>
+              <Action.Push
+                icon={Icon.NewDocument}
+                title="Add New Entry"
+                target={<AddLocalEntryForm path={path} bibfile={bibfile} onAdded={loadEntries} />}
+              />
+              <Action title="Settings" onAction={openExtensionPreferences} icon={Icon.Cog} />
+            </ActionPanel>
+          }
+        />
+      )}
       {entries.map((entry, index) => (
         <List.Item
           key={index}

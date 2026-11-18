@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { ReadableStream } from "node:stream/web";
 
+import { httpFetch } from "./http";
 import { type IAdsGeneralQueryEntry, type IAdsDocEntry } from "./types";
 
 /**
@@ -21,7 +22,7 @@ export async function AdsQueryGeneral(query: string, ads_api_token: string): Pro
   url.searchParams.set("fl", "bibcode,title,author,year");
   url.searchParams.set("rows", "50");
 
-  const resp = await fetch(url.toString(), {
+  const resp = await httpFetch(url.toString(), {
     headers: { Authorization: `Bearer ${ads_api_token}` },
   });
 
@@ -45,7 +46,7 @@ export async function AdsQueryByBibcode(bibcode: string, token: string): Promise
   url.searchParams.set("fl", "bibcode,title,author,year,pub,abstract,doi");
   url.searchParams.set("rows", "1");
 
-  const resp = await fetch(url.toString(), {
+  const resp = await httpFetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resp.ok) {
@@ -68,7 +69,7 @@ export async function AdsQueryByBibcode(bibcode: string, token: string): Promise
  * @throws {Error} - Throws an error if the BibTeX export fails or if no BibTeX is returned from ADS.
  */
 export async function AdsQueryBibtex(bibcode: string, api_token: string): Promise<string> {
-  const resp = await fetch("https://api.adsabs.harvard.edu/v1/export/bibtex", {
+  const resp = await httpFetch("https://api.adsabs.harvard.edu/v1/export/bibtex", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${api_token}`,
@@ -104,7 +105,7 @@ export async function AdsQueryPdf(bibcode: string, api_token: string): Promise<s
   for (const endpoint of candidates) {
     const url = `https://ui.adsabs.harvard.edu/link_gateway/${encodeURIComponent(bibcode)}/${endpoint}`;
 
-    const resp = await fetch(url, {
+    const resp = await httpFetch(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${api_token}` },
       redirect: "follow", // the equivalent of curl -L

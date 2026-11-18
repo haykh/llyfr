@@ -10,6 +10,7 @@ import {
   openExtensionPreferences,
   useNavigation,
 } from "@raycast/api";
+import { describeError } from "../Utils/errors";
 
 type Values = {
   pdf: string[];
@@ -47,7 +48,7 @@ export default function AddLocalEntryForm({
       onAdded?.();
       pop();
     } catch (e) {
-      await showToast({ style: Toast.Style.Failure, title: "Could not add entry", message: String(e) });
+      await showToast({ style: Toast.Style.Failure, title: "Could not add entry", message: describeError(e) });
     }
   }
 
@@ -55,7 +56,7 @@ export default function AddLocalEntryForm({
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Add to Library" onSubmit={onSubmit} />
+          <Action.SubmitForm icon={Icon.Plus} title="Add to Library" onSubmit={onSubmit} />
           <Action title="Settings" onAction={openExtensionPreferences} icon={Icon.Cog} />
         </ActionPanel>
       }

@@ -12,7 +12,7 @@ import { Icons } from "./icons";
  */
 export const OpenFileAction = ({ entry, path }: { entry: { file?: string }; path: string }): ReactElement | null => {
   if (entry.file) {
-    return <Action.Open title="Open" target={entry.file ? Path.join(path, entry.file) : ""} />;
+    return <Action.Open icon={Icons.Document} title="Open" target={entry.file ? Path.join(path, entry.file) : ""} />;
   }
   return null;
 };

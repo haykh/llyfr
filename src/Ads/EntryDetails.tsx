@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Detail, Toast, showToast } from "@raycast/api";
+import { describeError } from "../Utils/errors";
 
 import { type IRemoteEntryDetails } from "../Utils/types";
 import { AdsQueryByBibcode, AdsQueryBibtex } from "../Utils/queries";
@@ -26,7 +27,7 @@ export default function RemoteEntryDetails({
 
     (async () => {
       try {
-        await showToast({ style: Toast.Style.Animated, title: "Loading ADS details..." });
+        await showToast({ style: Toast.Style.Animated, title: "Loading ADS details…" });
 
         const [doc, bibtex] = await Promise.all([
           AdsQueryByBibcode(bibcode, api_token),
@@ -50,7 +51,7 @@ export default function RemoteEntryDetails({
         await showToast({ style: Toast.Style.Success, title: "Loaded" });
       } catch (err) {
         if (!cancelled) {
-          await showToast({ style: Toast.Style.Failure, title: "Failed to load details", message: String(err) });
+          await showToast({ style: Toast.Style.Failure, title: "Failed to load details", message: describeError(err) });
         }
       }
     })();

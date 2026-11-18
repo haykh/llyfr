@@ -1,0 +1,70 @@
+# Builds the Raycast Store version of the extension from master and commits it
+# to the `raycast` branch. Publishing stays manual:
+#   git switch raycast && git pull && npm ci && npm run publish
+name: Sync raycast branch
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raycast-branch
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Strip non-Raycast content
+        run: node scripts/raycast-release.mjs
+
+      - name: Refresh package-lock.json
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Stripping can leave code that Prettier wants formatted differently.
+      - name: Format
+        run: npm run fix-lint
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npx ray build -e dist -o "$RUNNER_TEMP/raycast-build"
+
+      - name: Commit to raycast branch
+        env:
+          MASTER_SHA: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          tree=$(git write-tree)
+          message="Sync from master ${MASTER_SHA::7}"
+
+          if git ls-remote --exit-code --heads origin raycast > /dev/null; then
+            git fetch --depth=1 origin raycast
+            parent=$(git rev-parse FETCH_HEAD)
+            if [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
+              echo "raycast branch is already up to date"
+              exit 0
+            fi
+            commit=$(git commit-tree "$tree" -p "$parent" -m "$message")
+          else
+            commit=$(git commit-tree "$tree" -m "$message")
+          fi
+
+          git push origin "$commit:refs/heads/raycast"

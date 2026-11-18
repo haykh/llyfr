@@ -2,23 +2,21 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "llyfr",
   "title": "Llyfr",
-  "description": "Bibliography manager",
+  "description": "Search and manage a local BibTeX library of papers, and import entries and PDFs from NASA ADS.",
   "icon": "extension-icon.png",
   "license": "MIT",
   "commands": [
     {
       "name": "llyfr",
-      "title": "Llyfr",
+      "title": "Search Library",
       "description": "Display list of papers in the local library",
-      "mode": "view",
-      "subtitle": "local bibliography manager"
+      "mode": "view"
     },
     {
       "name": "llyfr-ads",
-      "title": "Llyfr-Ads",
+      "title": "Search ADS",
       "description": "Search papers on ADS",
       "mode": "view",
-      "subtitle": "search and import papers from ADS",
       "icon": "extension-icon-ads.png",
       "preferences": [
         {
@@ -26,7 +24,7 @@
           "title": "ADS API Token",
           "description": "Your ADS API Token (get it from ADS -> Account -> Settings -> API Token)",
           "type": "password",
-          "required": false
+          "required": true
         }
       ]
     }
@@ -37,20 +35,21 @@
       "title": "Path to the bibliography",
       "description": "Path to where all documents are stored",
       "type": "directory",
-      "required": false
+      "required": true
     },
     {
       "name": "bibfile",
       "title": "Path to the .bib file",
       "description": "Path to the .bib file containing the bibliography",
       "type": "file",
-      "required": false
+      "required": true
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.103.0",
     "@raycast/utils": "^2.2.1",
-    "@retorquere/bibtex-parser": "^9.0.26"
+    "@retorquere/bibtex-parser": "^9.0.26",
+    "undici": "7.30.1"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",
@@ -78,6 +77,6 @@
   ],
   "categories": [
     "Productivity",
-    "Other"
+    "Data"
   ]
 }

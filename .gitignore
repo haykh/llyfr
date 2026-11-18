@@ -10,8 +10,10 @@ raycast-env.d.ts
 compiled_raycast_swift
 compiled_raycast_rust
 
+# raycast:strip-start
 # Vicinae specific files
 vicinae-env.d.ts
+# raycast:strip-end
 
 # misc
 .DS_Store
