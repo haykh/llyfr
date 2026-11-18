@@ -1,8 +1,9 @@
-import { ActionPanel, Detail, Action, Icon } from "@raycast/api";
+import { ActionPanel, Detail, Action } from "@raycast/api";
 
 import { IEntryDetails } from "./types";
 import { OpenFileAction, OpenInBrowserAction } from "./Actions";
 import DownloadAction from "./DownloadAction";
+import { Icons } from "./icons";
 
 export default function EntryDetails({
   entry,
@@ -38,7 +39,7 @@ export default function EntryDetails({
             <DownloadAction bibcode={entry.bibcode} api_token={api_token} />
           ) : null}
           <OpenInBrowserAction entry={entry} />
-          <Action.CopyToClipboard icon={Icon.Clipboard} title="Copy BibTeX" content={entry.bibtex} />
+          <Action.CopyToClipboard icon={Icons.Clipboard} title="Copy BibTeX" content={entry.bibtex} />
         </ActionPanel>
       }
     />

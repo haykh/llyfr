@@ -9,7 +9,8 @@
       "ES2023",
       "DOM"
     ],
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "target": "ES2023",
     "strict": true,
     "isolatedModules": true,

@@ -1,26 +1,21 @@
 import { useState } from "react";
-import { Action, ActionPanel, Form, getPreferenceValues, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
 
 import List from "./Ads/List";
-import { ValidatePreferences } from "./Ads/Preferences";
 
 export default function Command() {
-  const preferences = getPreferenceValues<Preferences>();
-  const ads_preferences = getPreferenceValues<Preferences.LlyfrAds>();
-  const validation = ValidatePreferences(ads_preferences);
-  if (!validation.status) {
-    return validation.component;
-  }
-  const ads_api_token = validation.api_token;
-
   const { push } = useNavigation();
   const [query, setQuery] = useState("");
+
+  const preferences = getPreferenceValues<Preferences>();
+  const { api_token: ads_api_token } = getPreferenceValues<Preferences.LlyfrAds>();
 
   return (
     <Form
       actions={
         <ActionPanel>
           <Action.SubmitForm
+            icon={Icon.MagnifyingGlass}
             title="Search ADS"
             onSubmit={() => {
               const q = query.trim();

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 
 import { Action, ActionPanel, Color, Icon, List, Toast, showToast } from "@raycast/api";
+import { describeError } from "../Utils/errors";
 
 import { type IAdsGeneralQueryEntry } from "../Utils/types";
 import { AdsQueryGeneral } from "../Utils/queries";
+import { Icons } from "../Utils/icons";
 import { OpenDetailsAction } from "./Actions";
 
 export default function AdsList({
@@ -33,7 +35,7 @@ export default function AdsList({
           await showToast({
             style: Toast.Style.Failure,
             title: "ADS search failed",
-            message: String(e),
+            message: describeError(e),
           });
         }
       } finally {
@@ -62,7 +64,23 @@ export default function AdsList({
   };
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Filter results...">
+    <List isLoading={isLoading} searchBarPlaceholder="Filter results…">
+      {!isLoading && (
+        <List.EmptyView
+          icon={Icon.MagnifyingGlass}
+          title={entries.length === 0 ? "No Results on ADS" : "No Matching Results"}
+          description={entries.length === 0 ? `Nothing found for: ${query}` : "Try a different filter."}
+          actions={
+            <ActionPanel>
+              <Action.OpenInBrowser
+                title="Search in ADS"
+                icon={Icons.Globe}
+                url={`https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(query)}`}
+              />
+            </ActionPanel>
+          }
+        />
+      )}
       {entries.map((d) => (
         <List.Item
           key={d.bibcode}
@@ -81,7 +99,7 @@ export default function AdsList({
               <OpenDetailsAction bibcode={d.bibcode} api_token={ads_api_token} path={path} />
               <Action.OpenInBrowser
                 title="Open in ADS"
-                icon={Icon.Globe}
+                icon={Icons.Globe}
                 url={`https://ui.adsabs.harvard.edu/abs/${d.bibcode}/abstract`}
               />
             </ActionPanel>
